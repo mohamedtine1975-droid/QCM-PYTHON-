@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QCM Python - Entraînement</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .category {
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .progress-text {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #667eea;
+            transition: width 0.3s ease;
+        }
+
+        .question {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 30px;
+            line-height: 1.5;
+            white-space: pre-line;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .option {
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            background: white;
+        }
+
+        .option:hover:not(.disabled) {
+            border-color: #667eea;
+            background: #f0f4ff;
+            transform: translateX(5px);
+        }
+
+        .option.selected.correct {
+            border-color: #10b981;
+            background: #d1fae5;
+        }
+
+        .option.selected.incorrect {
+            border-color: #ef4444;
+            background: #fee2e2;
+        }
+
+        .option.correct-answer {
+            border-color: #10b981;
+            background: #d1fae5;
+        }
+
+        .option.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #5568d3;
+        }
+
+        .score {
+            text-align: center;
+            color: #666;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .results {
+            text-align: center;
+        }
+
+        .results h2 {
+            color: #667eea;
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+
+        .final-score {
+            font-size: 72px;
+            font-weight: 700;
+            color: #667eea;
+            margin: 20px 0;
+        }
+
+        .score-details {
+            font-size: 24px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .results-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 30px 0;
+            text-align: left;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .result-item.correct {
+            background: #d1fae5;
+        }
+
+        .result-item.incorrect {
+            background: #fee2e2;
+        }
+
+        .icon {
+            width: 24px;
+            height: 24px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .question {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="app"></div>
+
+    <script>
+        const questions = [
+            {
+                id: 1,
+                question: "Quelle est la sortie de ce code ?\nif 5 > 3:\n    print('A')\nelse:\n    print('B')",
+                options: ["A", "B", "Erreur", "Rien"],
+                correct: 0,
+                category: "if...else"
+            },
+            {
+                id: 2,
+                question: "Combien de fois s'exécute cette boucle ?\nfor i in range(5):\n    print(i)",
+                options: ["4 fois", "5 fois", "6 fois", "Infiniment"],
+                correct: 1,
+                category: "for"
+            },
+            {
+                id: 3,
+                question: "Quel type de données est immuable (non modifiable) ?",
+                options: ["list", "dict", "tuple", "set"],
+                correct: 2,
+                category: "Types de base"
+            },
+            {
+                id: 4,
+                question: "Quelle est la valeur de x ?\nx = 10 if 5 > 3 else 20",
+                options: ["5", "10", "20", "Erreur"],
+                correct: 1,
+                category: "if...else"
+            },
+            {
+                id: 5,
+                question: "Que fait l'instruction 'break' dans une boucle ?",
+                options: ["Pause la boucle", "Sort de la boucle", "Passe à l'itération suivante", "Redémarre la boucle"],
+                correct: 1,
+                category: "while/for"
+            },
+            {
+                id: 6,
+                question: "Quelle est la sortie ?\nfor i in range(3):\n    if i == 1:\n        continue\n    print(i)",
+                options: ["0 1 2", "0 2", "1 2", "0 1"],
+                correct: 1,
+                category: "for"
+            },
+            {
+                id: 7,
+                question: "Quel est le type de cette variable ?\nx = 3.14",
+                options: ["int", "float", "str", "double"],
+                correct: 1,
+                category: "Types de base"
+            },
+            {
+                id: 8,
+                question: "Comment créer une liste vide ?",
+                options: ["list()", "[]", "Les deux", "Aucune"],
+                correct: 2,
+                category: "Types de base"
+            },
+            {
+                id: 9,
+                question: "Quelle condition est vraie ?",
+                options: ["5 == '5'", "5 != '5'", "5 is '5'", "Aucune"],
+                correct: 1,
+                category: "if...else"
+            },
+            {
+                id: 10,
+                question: "Combien d'itérations ?\nfor i in range(2, 8, 2):\n    print(i)",
+                options: ["2", "3", "4", "6"],
+                correct: 1,
+                category: "for"
+            },
+            {
+                id: 11,
+                question: "Quelle structure garantit au moins une exécution ?",
+                options: ["for", "while", "if", "Aucune ne le garantit"],
+                correct: 3,
+                category: "while"
+            },
+            {
+                id: 12,
+                question: "Que retourne type([1, 2, 3]) ?",
+                options: ["'list'", "<class 'list'>", "list", "array"],
+                correct: 1,
+                category: "Types de base"
+            },
+            {
+                id: 13,
+                question: "Quelle est la sortie ?\nx = 0\nwhile x < 3:\n    x += 1\nprint(x)",
+                options: ["2", "3", "4", "Boucle infinie"],
+                correct: 1,
+                category: "while"
+            },
+            {
+                id: 14,
+                question: "Comment accéder au dernier élément d'une liste L ?",
+                options: ["L[len(L)]", "L[-1]", "L[last]", "L.last()"],
+                correct: 1,
+                category: "Types de base"
+            },
+            {
+                id: 15,
+                question: "Quelle est la différence entre '==' et 'is' ?",
+                options: ["Aucune", "== compare les valeurs, is compare l'identité", "is compare les valeurs, == compare l'identité", "is est obsolète"],
+                correct: 1,
+                category: "if...else"
+            },
+            {
+                id: 16,
+                question: "Que fait enumerate([10, 20, 30]) ?",
+                options: ["Compte les éléments", "Retourne des tuples (index, valeur)", "Trie la liste", "Erreur"],
+                correct: 1,
+                category: "for"
+            },
+            {
+                id: 17,
+                question: "Quel est le résultat de bool([]) ?",
+                options: ["True", "False", "[]", "Erreur"],
+                correct: 1,
+                category: "Types de base"
+            },
+            {
+                id: 18,
+                question: "Comment sortir d'une boucle while infinie volontairement ?",
+                options: ["stop", "break", "exit", "return"],
+                correct: 1,
+                category: "while"
+            },
+            {
+                id: 19,
+                question: "Quelle syntaxe est correcte pour match...case ?",
+                options: ["match x: case 1: ...", "match(x) case 1: ...", "switch x: case 1: ...", "case x: match 1: ..."],
+                correct: 0,
+                category: "match...case"
+            },
+            {
+                id: 20,
+                question: "Que fait 'continue' dans une boucle ?",
+                options: ["Sort de la boucle", "Redémarre la boucle", "Passe à l'itération suivante", "Pause la boucle"],
+                correct: 2,
+                category: "for/while"
+            },
+            {
+                id: 21,
+                question: "Quelle est la sortie ?\nif False:\n    print('A')\nelif True:\n    print('B')\nelse:\n    print('C')",
+                options: ["A", "B", "C", "Rien"],
+                correct: 1,
+                category: "if...else"
+            },
+            {
+                id: 22,
+                question: "Comment créer un dictionnaire vide ?",
+                options: ["{}", "dict()", "Les deux", "[]"],
+                correct: 2,
+                category: "Types de base"
+            },
+            {
+                id: 23,
+                question: "Quelle est la valeur de range(5) ?",
+                options: ["[0,1,2,3,4]", "Un objet itérable", "[1,2,3,4,5]", "5"],
+                correct: 1,
+                category: "for"
+            },
+            {
+                id: 24,
+                question: "Que se passe-t-il si aucun case ne correspond dans match...case ?",
+                options: ["Erreur", "Rien si pas de case _", "Exécute le premier case", "Exécute tous les cases"],
+                correct: 1,
+                category: "match...case"
+            },
+            {
+                id: 25,
+                question: "Quelle condition est fausse ?",
+                options: ["not False", "True and True", "False or False", "True or False"],
+                correct: 2,
+                category: "if...else"
+            },
+            {
+                id: 26,
+                question: "Comment inverser une chaîne s = 'hello' ?",
+                options: ["s.reverse()", "s[::-1]", "reverse(s)", "s.backward()"],
+                correct: 1,
+                category: "Types de base"
+            },
+            {
+                id: 27,
+                question: "Quelle est la sortie ?\nfor i in range(3):\n    pass\nprint(i)",
+                options: ["0", "2", "3", "Erreur"],
+                correct: 1,
+                category: "for"
+            },
+            {
+                id: 28,
+                question: "Quel opérateur vérifie l'appartenance à une liste ?",
+                options: ["in", "contains", "has", "includes"],
+                correct: 0,
+                category: "if...else"
+            },
+            {
+                id: 29,
+                question: "Quelle structure de données n'accepte pas de doublons ?",
+                options: ["list", "tuple", "set", "dict"],
+                correct: 2,
+                category: "Types de base"
+            },
+            {
+                id: 30,
+                question: "Combien de fois 'Bonjour' est affiché ?\ni = 0\nwhile i < 3:\n    print('Bonjour')\n    i += 1",
+                options: ["2", "3", "4", "Infiniment"],
+                correct: 1,
+                category: "while"
+            }
+        ];
+
+        let currentQuestion = 0;
+        let selectedAnswer = null;
+        let score = 0;
+        let answers = [];
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function render() {
+            const app = document.getElementById('app');
+            
+            if (currentQuestion >= questions.length) {
+                showResults();
+                return;
+            }
+
+            const q = questions[currentQuestion];
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+
+            let optionsHtml = '';
+            for (let i = 0; i < q.options.length; i++) {
+                let classes = 'option';
+                if (selectedAnswer !== null) {
+                    classes += ' disabled';
+                }
+                if (selectedAnswer === i) {
+                    if (i === q.correct) {
+                        classes += ' selected correct';
+                    } else {
+                        classes += ' selected incorrect';
+                    }
+                }
+                if (selectedAnswer !== null && i === q.correct) {
+                    classes += ' correct-answer';
+                }
+                
+                optionsHtml += '<div class="' + classes + '" onclick="selectAnswer(' + i + ')">' + escapeHtml(q.options[i]) + '</div>';
+            }
+
+            let nextButton = '';
+            if (selectedAnswer !== null) {
+                const buttonText = currentQuestion < questions.length - 1 ? 'Question suivante' : 'Voir les résultats';
+                nextButton = '<button class="btn" onclick="nextQuestion()">' + buttonText + '</button>';
+            }
+
+            app.innerHTML = '<div class="header">' +
+                '<div class="category">' + escapeHtml(q.category) + '</div>' +
+                '<div class="progress-text">Question ' + (currentQuestion + 1) + ' / ' + questions.length + '</div>' +
+                '</div>' +
+                '<div class="progress-bar">' +
+                '<div class="progress-fill" style="width: ' + progress + '%"></div>' +
+                '</div>' +
+                '<div class="question">' + escapeHtml(q.question) + '</div>' +
+                '<div class="options">' + optionsHtml + '</div>' +
+                nextButton +
+                '<div class="score">Score actuel: ' + score + ' / ' + (currentQuestion + (selectedAnswer !== null ? 1 : 0)) + '</div>';
+        }
+
+        function selectAnswer(index) {
+            if (selectedAnswer !== null) return;
+            
+            const q = questions[currentQuestion];
+            selectedAnswer = index;
+            const isCorrect = index === q.correct;
+            
+            answers.push({
+                question: currentQuestion,
+                selected: index,
+                correct: q.correct,
+                isCorrect: isCorrect
+            });
+            
+            if (isCorrect) {
+                score++;
+            }
+            
+            render();
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            selectedAnswer = null;
+            render();
+        }
+
+        function showResults() {
+            const app = document.getElementById('app');
+            const percentage = Math.round((score / questions.length) * 100);
+
+            let resultsList = '';
+            for (let i = 0; i < answers.length; i++) {
+                const answer = answers[i];
+                const itemClass = answer.isCorrect ? 'correct' : 'incorrect';
+                const symbol = answer.isCorrect ? '✓' : '✗';
+                resultsList += '<div class="result-item ' + itemClass + '">' +
+                    '<span>Question ' + (i + 1) + ': ' + escapeHtml(questions[i].category) + '</span>' +
+                    '<span>' + symbol + '</span>' +
+                    '</div>';
+            }
+
+            app.innerHTML = '<div class="results">' +
+                '<h2>Résultats du QCM</h2>' +
+                '<div class="final-score">' + percentage + '%</div>' +
+                '<div class="score-details">' + score + ' / ' + questions.length + ' bonnes réponses</div>' +
+                '<div class="progress-bar">' +
+                '<div class="progress-fill" style="width: ' + percentage + '%"></div>' +
+                '</div>' +
+                '<div class="results-list">' + resultsList + '</div>' +
+                '<button class="btn" onclick="restart()">🔄 Recommencer</button>' +
+                '</div>';
+        }
+
+        function restart() {
+            currentQuestion = 0;
+            selectedAnswer = null;
+            score = 0;
+            answers = [];
+            render();
+        }
+
+        render();
+    </script>
+</body>
+</html>
